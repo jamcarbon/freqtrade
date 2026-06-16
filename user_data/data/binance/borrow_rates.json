@@ -1,0 +1,247 @@
+{
+"AAVE": {
+"ann": 0.06012645,
+"limit_coin": 3600.0,
+"limit_usd": 270000.0
+},
+"ADA": {
+"ann": 0.04774565,
+"limit_coin": 1300000.0,
+"limit_usd": 231789.99999999997
+},
+"ALGO": {
+"ann": 0.0736716,
+"limit_coin": 340000.0,
+"limit_usd": 32198.000000000004
+},
+"APE": {
+"ann": 0.1330571,
+"limit_coin": 76000.0,
+"limit_usd": 9811.599999999999
+},
+"APT": {
+"ann": 0.07181375000000001,
+"limit_coin": 14000.0,
+"limit_usd": 9506.0
+},
+"ATOM": {
+"ann": 0.0523702,
+"limit_coin": 18000.0,
+"limit_usd": 35928.0
+},
+"AVAX": {
+"ann": 0.04179615,
+"limit_coin": 36000.0,
+"limit_usd": 247968.0
+},
+"AXS": {
+"ann": 0.25388305,
+"limit_coin": 10000.0,
+"limit_usd": 9940.0
+},
+"BCH": {
+"ann": 0.25628475,
+"limit_coin": 230.0,
+"limit_usd": 51773.0
+},
+"BNB": {
+"ann": 0.028484600000000002,
+"limit_coin": 400.0,
+"limit_usd": 246823.99999999997
+},
+"BTC": {
+"ann": 0.0039054999999999997,
+"limit_coin": 100.0,
+"limit_usd": 6636891.0
+},
+"CHZ": {
+"ann": 0.37477105,
+"limit_coin": 380000.0,
+"limit_usd": 9264.4
+},
+"COMP": {
+"ann": 0.44394585000000003,
+"limit_coin": 550.0,
+"limit_usd": 10015.5
+},
+"CRV": {
+"ann": 0.10283874999999999,
+"limit_coin": 42000.0,
+"limit_usd": 10445.4
+},
+"DASH": {
+"ann": 0.23172755000000003,
+"limit_coin": 260.0,
+"limit_usd": 9926.8
+},
+"DOGE": {
+"ann": 0.0368942,
+"limit_coin": 4800000.0,
+"limit_usd": 420624.0
+},
+"DOT": {
+"ann": 0.04884065,
+"limit_coin": 50000.0,
+"limit_usd": 50549.99999999999
+},
+"EGLD": {
+"ann": 0.2404693,
+"limit_coin": 1200.0,
+"limit_usd": 3648.0
+},
+"ENJ": {
+"ann": 0.5426309,
+"limit_coin": 190000.0,
+"limit_usd": 6123.700000000001
+},
+"ETC": {
+"ann": 0.0158775,
+"limit_coin": 6400.0,
+"limit_usd": 47296.0
+},
+"ETH": {
+"ann": 0.0220168,
+"limit_coin": 2000.0,
+"limit_usd": 3546700.0
+},
+"FIL": {
+"ann": 0.0422378,
+"limit_coin": 62000.0,
+"limit_usd": 49290.0
+},
+"GALA": {
+"ann": 0.06192955,
+"limit_coin": 3600000.0,
+"limit_usd": 9900.0
+},
+"GMT": {
+"ann": 0.5180372,
+"limit_coin": 920000.0,
+"limit_usd": 7737.200000000001
+},
+"GRT": {
+"ann": 0.03889805,
+"limit_coin": 270000.0,
+"limit_usd": 5472.9
+},
+"HBAR": {
+"ann": 0.014395600000000001,
+"limit_coin": 3000000.0,
+"limit_usd": 248009.99999999997
+},
+"ICP": {
+"ann": 0.21356879999999998,
+"limit_coin": 3900.0,
+"limit_usd": 9488.699999999999
+},
+"INJ": {
+"ann": 0.09527959999999999,
+"limit_coin": 1900.0,
+"limit_usd": 11052.300000000001
+},
+"IOTA": {
+"ann": 0.1223626,
+"limit_coin": 210000.0,
+"limit_usd": 10374.0
+},
+"KAVA": {
+"ann": 0.5832992,
+"limit_coin": 120000.0,
+"limit_usd": 5748.0
+},
+"LDO": {
+"ann": 0.0322733,
+"limit_coin": 79000.0,
+"limit_usd": 21685.5
+},
+"LINK": {
+"ann": 0.00812125,
+"limit_coin": 30000.0,
+"limit_usd": 247829.99999999997
+},
+"LTC": {
+"ann": 0.027853150000000004,
+"limit_coin": 5500.0,
+"limit_usd": 250800.0
+},
+"MANA": {
+"ann": 0.0714378,
+"limit_coin": 49000.0,
+"limit_usd": 3395.7
+},
+"NEAR": {
+"ann": 0.09107844999999999,
+"limit_coin": 110000.0,
+"limit_usd": 267410.0
+},
+"NEO": {
+"ann": 0.23736680000000002,
+"limit_coin": 2300.0,
+"limit_usd": 5232.5
+},
+"OP": {
+"ann": 0.056315849999999994,
+"limit_coin": 460000.0,
+"limit_usd": 49220.0
+},
+"RUNE": {
+"ann": 0.30509254999999996,
+"limit_coin": 25000.0,
+"limit_usd": 10500.0
+},
+"SAND": {
+"ann": 0.088695,
+"limit_coin": 130000.0,
+"limit_usd": 7000.5
+},
+"SNX": {
+"ann": 0.14130245,
+"limit_coin": 18000.0,
+"limit_usd": 4554.0
+},
+"SOL": {
+"ann": 0.0589621,
+"limit_coin": 30000.0,
+"limit_usd": 2228400.0
+},
+"SUSHI": {
+"ann": 0.1496792,
+"limit_coin": 28000.0,
+"limit_usd": 5093.2
+},
+"THETA": {
+"ann": 0.050698499999999994,
+"limit_coin": 39000.0,
+"limit_usd": 6364.8
+},
+"TRX": {
+"ann": 0.09970704999999999,
+"limit_coin": 150000.0,
+"limit_usd": 47700.0
+},
+"UNI": {
+"ann": 0.04200055,
+"limit_coin": 19000.0,
+"limit_usd": 56392.0
+},
+"VET": {
+"ann": 0.011446399999999999,
+"limit_coin": 700000.0,
+"limit_usd": 3687.6
+},
+"XLM": {
+"ann": 0.0683718,
+"limit_coin": 260000.0,
+"limit_usd": 56394.0
+},
+"XRP": {
+"ann": 0.03861335,
+"limit_coin": 730000.0,
+"limit_usd": 899287.0
+},
+"ZEC": {
+"ann": 0.5150369,
+"limit_coin": 100.0,
+"limit_usd": 52296.0
+}
+}
