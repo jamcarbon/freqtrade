@@ -69,7 +69,8 @@ def fidelity():
                           slippage=cfg.slippage)
     eqb, info = backtest(
         equity0=cfg.equity0, start_equity=cfg.equity0, n_max=49, thresh_ann=0.05,
-        rebal_every=9, rebal_band=1e9, spot_borrow_ann=0.10, **trade_cost_fee,
+        rebal_every=9, rebal_band=1e9, spot_borrow_ann=0.10,
+        trend_filter_z=cfg.trend_filter_z, trend_lb=cfg.trend_lb, **trade_cost_fee,
     )
     rb = eqb["equity"].pct_change().dropna()
     fin_b = eqb["equity"].iloc[-1]

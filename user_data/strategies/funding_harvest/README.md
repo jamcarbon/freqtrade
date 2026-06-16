@@ -157,6 +157,19 @@ discipline recovers it:
 | Live tick on real public data | 49 pairs, 16-pair book, correct maker tickets ✓ |
 | LiveBroker fail-closed gate | raises without exchanges + enable_live ✓ |
 | Import / reorg smoke test | all 13 modules import ✓ |
+| Trend-filter improvement test | see below — off by default at safe leverage |
+
+### Cheap-improvement experiment: dynamic squeeze (trend) filter
+We added an optional momentum-based filter (reusing strategy #2's signal) that skips a
+carry leg when its perp side faces an extreme adverse trend (`trend_filter_z`, default
+**OFF**). Honest result:
+- At **high leverage (10×)** it helps: Sharpe ~3.6 → ~4.2.
+- At the **deployed safe 3× config** it is **redundant with the static `short_exclude`
+  blocklist and slightly hurts** (Sharpe 5.3 static-only → 4.7 with filter).
+- **Conclusion:** the static squeeze-name blocklist (already in the live config) is the
+  better cheap guard at safe leverage. The dynamic filter stays as a documented,
+  toggle-able option (`trend_filter_z=2.0`), wired end-to-end and fidelity-verified, but
+  **off by default**.
 
 ---
 
@@ -170,8 +183,12 @@ live entry points fail closed or are guarded).
 Locked-in live configuration:
 > both-sided · n_max≈49 · carry/vol sizing **at entry (set-and-hold)** · maker-preferred
 > · ~72h rebalance · entry threshold ~5–8% · **cross/portfolio margin at ≤3×** with
-> auto-deleverage · squeeze-prone names excluded from the short side · per-name short
-> cap 8% of equity.
+> auto-deleverage · squeeze-prone names excluded from the short side (static blocklist)
+> · per-name short cap 8% of equity · dynamic trend filter available but off.
+
+> **Runs alongside strategy #2 (momentum)** as a low-correlation (+0.05) diversifier —
+> see [`../portfolio/README.md`](../portfolio/README.md). Carry is the low-vol/high-Sharpe
+> stabiliser; momentum is the return driver.
 
 ---
 

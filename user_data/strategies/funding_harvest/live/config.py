@@ -34,6 +34,13 @@ class StrategyConfig:
     # --- sizing / cadence (Step C: set-and-hold + slow cadence) --------------
     rebal_every: int = 9        # rebalance cadence in 8h steps (9 -> 72h)
     set_and_hold: bool = True   # size at entry; never daily-reweight a held pair
+    # squeeze-tail filter (reuses #2's momentum): skip a carry leg whose perp side
+    # faces an extreme adverse trend. Researched lever, OFF by default: it lifts
+    # Sharpe at HIGH leverage (10x: 3.6->4.2) but at the deployed SAFE 3x config it
+    # is redundant with short_exclude and slightly hurts (5.3->4.7). Set e.g. 2.0
+    # to enable. The static short_exclude blocklist is the better squeeze guard here.
+    trend_filter_z: float | None = None
+    trend_lb: int = 63          # momentum lookback (8h steps) for the filter
 
     # --- execution costs (maker-preferred, VIP0 + BNB discount) --------------
     fee_spot: float = 0.00075   # spot maker leg

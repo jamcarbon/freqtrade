@@ -71,7 +71,7 @@ class Engine:
             if step["is_rebalance"] and not self.risk.halted:
                 desired = build_target(
                     step["sig"], step["vol"], self.broker.positions(),
-                    self.broker.equity(), self.cfg,
+                    self.broker.equity(), self.cfg, trend_z=step.get("trend_z"),
                 )
                 self._execute(desired, step["prices"])
 

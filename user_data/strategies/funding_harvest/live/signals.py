@@ -28,6 +28,7 @@ def build_target(
     held: dict[str, TargetPos],
     equity: float,
     cfg: StrategyConfig,
+    trend_z: pd.Series | None = None,   # momentum z for the squeeze-tail filter
 ) -> dict[str, TargetPos]:
     """Return the desired book. Held positions keep their entry notional
     (set-and-hold); only genuinely new positions are sized."""
@@ -42,6 +43,13 @@ def build_target(
                 side[p] = 0
         for p in side.index[side < 0]:
             if p not in cfg.borrow_limit:        # no borrow availability -> no short
+                side[p] = 0
+    # squeeze-tail filter: drop a leg whose perp side faces an extreme adverse trend
+    if trend_z is not None and cfg.trend_filter_z:
+        for p in side.index[side != 0]:
+            z = trend_z.get(p, np.nan)
+            if np.isfinite(z) and ((side[p] > 0 and z > cfg.trend_filter_z)
+                                   or (side[p] < 0 and z < -cfg.trend_filter_z)):
                 side[p] = 0
 
     # ---- 2. net-of-cost carry & rank ---------------------------------------
@@ -58,11 +66,20 @@ def build_target(
     target = ranked[: cfg.n_max]
 
     # hysteresis: keep a held pair while its funding still backs the SAME side
+    # (but drop it if its trend has turned adversely extreme)
+    def trend_adverse(p):
+        if trend_z is None or not cfg.trend_filter_z:
+            return False
+        z = trend_z.get(p, np.nan)
+        s = held[p].side
+        return np.isfinite(z) and ((s > 0 and z > cfg.trend_filter_z)
+                                   or (s < 0 and z < -cfg.trend_filter_z))
     keep = [
         p for p in held
         if np.isfinite(sig.get(p, np.nan))
         and abs(sig[p]) > cfg.exit_ann
         and np.sign(sig[p]) == held[p].side
+        and not trend_adverse(p)
     ]
     desired_set = list(dict.fromkeys(target + keep))[: cfg.n_max]
     if not desired_set:

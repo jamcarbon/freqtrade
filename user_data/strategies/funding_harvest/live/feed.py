@@ -38,6 +38,13 @@ class ReplayFeed(DataFeed):
         self.basis_ret = self.spot_ret - self.perp_ret
         self.trail = self.fund.rolling(cfg.trail_k).mean() * FUND_PER_YEAR
         self.basis_vol = self.basis_ret.rolling(cfg.vol_k).std() * np.sqrt(FUND_PER_YEAR)
+        # momentum z (cross-sectional, risk-adjusted) for the squeeze-tail filter
+        self.trend_z = None
+        if cfg.trend_filter_z:
+            pv = self.perp_ret.rolling(cfg.vol_k).std() * np.sqrt(FUND_PER_YEAR)
+            m = (self.perp / self.perp.shift(cfg.trend_lb) - 1.0) / pv
+            self.trend_z = m.sub(m.mean(axis=1), axis=0).div(
+                m.std(axis=1).replace(0, np.nan), axis=0)
         self.times = self.perp.index
         self._warm = max(cfg.trail_k, cfg.vol_k)
 
@@ -61,6 +68,7 @@ class ReplayFeed(DataFeed):
                 accrual=accrual,
                 sig=self.trail.loc[t],
                 vol=self.basis_vol.loc[t],
+                trend_z=(self.trend_z.loc[t] if self.trend_z is not None else None),
                 prices=prices,
                 is_rebalance=(i % self.cfg.rebal_every == 0 and i >= self._warm),
                 live=False,
@@ -107,7 +115,7 @@ class LiveFeed(DataFeed):
         psym, ssym = f"{c}/USDT:USDT", f"{c}/USDT"
         try:
             fh = self.ex.fetch_funding_rate_history(psym, limit=self.cfg.trail_k + 3)
-            n8 = self.cfg.vol_k + 3
+            n8 = max(self.cfg.vol_k, self.cfg.trend_lb) + 3
             po = self.ex.fetch_ohlcv(psym, "8h", limit=n8)
             so = self.spot_ex.fetch_ohlcv(ssym, "8h", limit=n8)
         except Exception:
@@ -121,32 +129,48 @@ class LiveFeed(DataFeed):
         n = min(len(pc), len(sc))
         basis_ret = sc[-n:].pct_change() - pc[-n:].pct_change()
         vol = basis_ret.tail(self.cfg.vol_k).std() * np.sqrt(FUND_PER_YEAR)
+        # raw perp momentum / perp-vol (cross-sectionally z-scored in snapshot)
+        mom_raw = np.nan
+        if self.cfg.trend_filter_z and len(pc) > self.cfg.trend_lb:
+            pvol = pc.pct_change().tail(self.cfg.vol_k).std() * np.sqrt(FUND_PER_YEAR)
+            if pvol > 0:
+                mom_raw = (pc.iloc[-1] / pc.iloc[-1 - self.cfg.trend_lb] - 1.0) / pvol
         return (trail, float(vol), float(sc.iloc[-1]), float(pc.iloc[-1]),
-                float(fr[-1]), float(basis_ret.iloc[-1]) if np.isfinite(basis_ret.iloc[-1]) else 0.0)
+                float(fr[-1]),
+                float(basis_ret.iloc[-1]) if np.isfinite(basis_ret.iloc[-1]) else 0.0,
+                float(mom_raw))
 
     def snapshot(self, is_rebalance: bool = True) -> dict:
         """Pull one live step across the universe."""
-        sig, vol, prices, accrual = {}, {}, {}, {}
+        sig, vol, prices, accrual, mom = {}, {}, {}, {}, {}
         t_recv = self.time.time()
         for c in self.pairs:
             r = self._pair_signal(c)
             if r is None:
                 continue
-            trail, v, spx, ppx, last_fr, last_br = r
+            trail, v, spx, ppx, last_fr, last_br, mom_raw = r
             sig[c] = trail
             vol[c] = v
             prices[c] = (spx, ppx)
+            mom[c] = mom_raw
             accrual[c] = {
                 "funding": last_fr,
                 "basis_ret": last_br,
                 "borrow_step": self.cfg.borrow_rate.get(c, 0.10) / FUND_PER_YEAR,
             }
+        # cross-sectional z-score of perp momentum -> the squeeze-tail filter input
+        trend_z = None
+        if self.cfg.trend_filter_z:
+            mser = pd.Series(mom).dropna()
+            if len(mser) > 1 and mser.std() > 0:
+                trend_z = (mser - mser.mean()) / mser.std()
         return dict(
             t=pd.Timestamp.utcnow(),
             i=0,
             accrual=accrual,
             sig=pd.Series(sig),
             vol=pd.Series(vol),
+            trend_z=trend_z,
             prices=prices,
             is_rebalance=is_rebalance,
             live=True,

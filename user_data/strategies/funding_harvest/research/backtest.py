@@ -121,6 +121,10 @@ def backtest(
     vol_k=30,             # lookback (prints) for trailing basis volatility
     both_sides=True,      # harvest negative funding too; False -> positive-only (#1-like)
     notional_cap=None,    # {pair: max USD spot notional}; caps deployment (capacity)
+    trend_filter_z=None,  # skip a carry leg when momentum is adversely extreme for
+                          # its PERP leg (short-perp in a rip-up / long-perp in a
+                          # crash) - cheap squeeze-tail guard reusing #2's signal
+    trend_lb=63,          # momentum lookback (8h steps) for the trend filter
     signal_lag=0,         # extra steps to delay acting on the signal (leak stress test)
     equity0=10_000.0,
     start_equity=None,    # override equity0 for walk-forward stitching
@@ -139,6 +143,16 @@ def backtest(
         trail = trail.shift(signal_lag)
     # Trailing annualised volatility of the hedged (basis) spread -> the real risk.
     basis_vol = basis_ret.rolling(vol_k).std() * np.sqrt(FUND_PER_YEAR)
+    # Optional momentum z (cross-sectional, risk-adjusted) for the squeeze-tail
+    # filter - same construction as strategy #2, computed on the perp leg.
+    trend_z = None
+    if trend_filter_z is not None:
+        pv = perp_ret.rolling(vol_k).std() * np.sqrt(FUND_PER_YEAR)
+        m = (perp / perp.shift(trend_lb) - 1.0) / pv
+        trend_z = m.sub(m.mean(axis=1), axis=0).div(
+            m.std(axis=1).replace(0, np.nan), axis=0)
+        if signal_lag:
+            trend_z = trend_z.shift(signal_lag)
 
     borrow_map = borrow_map or {}
     no_borrow = set(no_borrow or ())
@@ -190,6 +204,18 @@ def backtest(
                 for p in no_borrow:
                     if p in side.index and side[p] < 0:
                         side[p] = 0
+            # squeeze-tail filter: drop a candidate whose perp leg faces an extreme
+            # adverse trend (short-perp/+carry into a rip-up; long-perp/-carry into
+            # a crash). Held names that turn adverse fall out here and are closed.
+            if trend_z is not None:
+                tz = trend_z.loc[t]
+                for p in side.index[side != 0]:
+                    z = tz.get(p, np.nan)
+                    if np.isfinite(z) and (
+                        (side[p] > 0 and z > trend_filter_z)
+                        or (side[p] < 0 and z < -trend_filter_z)
+                    ):
+                        side[p] = 0
             cand = side[side != 0].index
             # net-of-cost annualised carry: gross |funding| minus (per-pair) borrow
             net = sig.abs().copy()
@@ -204,10 +230,18 @@ def backtest(
             # hysteresis: keep a held pair only while its funding still supports
             # the SAME side we hold and |funding| clears the exit level. (A pair
             # whose funding flipped sign is dropped here and closed below.)
+            def trend_adverse(p):
+                if trend_z is None:
+                    return False
+                z = trend_z.loc[t].get(p, np.nan)
+                s = held[p]["side"]
+                return np.isfinite(z) and (
+                    (s > 0 and z > trend_filter_z) or (s < 0 and z < -trend_filter_z))
             keep = [p for p in held
                     if np.isfinite(sig.get(p, np.nan))
                     and abs(sig[p]) > exit_ann
-                    and np.sign(sig[p]) == held[p]["side"]]
+                    and np.sign(sig[p]) == held[p]["side"]
+                    and not trend_adverse(p)]      # adverse-trend names fall out
             new_set = list(dict.fromkeys(target + keep))[:n_max]
 
             # a pair whose carry side flipped must be fully closed + reopened

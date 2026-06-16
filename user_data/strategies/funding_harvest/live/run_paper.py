@@ -55,7 +55,7 @@ def one_tick():
     broker.accrue(step["accrual"])
     flags = risk.check(step, broker)
     desired = build_target(step["sig"], step["vol"], broker.positions(),
-                           broker.equity(), cfg)
+                           broker.equity(), cfg, trend_z=step.get("trend_z"))
     eng._execute(desired, step["prices"])
 
     # show the would-be book
@@ -116,7 +116,7 @@ def forward_test(state_path: str = STATE_PATH, log_path: str = LOG_PATH,
     flags = risk.check(step, broker)
     if step["is_rebalance"] and not risk.halted:
         desired = build_target(step["sig"], step["vol"], broker.positions(),
-                               broker.equity(), cfg)
+                               broker.equity(), cfg, trend_z=step.get("trend_z"))
         eng._execute(desired, step["prices"])
 
     save_state(broker, risk, state_path)
